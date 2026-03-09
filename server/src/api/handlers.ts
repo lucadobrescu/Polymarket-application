@@ -366,3 +366,97 @@ export async function handlePlaceBet({
     return { error: error.message || "Failed to place bet" };
   }
 }
+
+export async function handleGetProfile({
+  user,
+  query,
+  set,
+}: {
+  user: any;
+  query: { activePage?: number; resolvedPage?: number };
+  set: any;
+}) {
+  if (!user) {
+    set.status = 401;
+    return { error: "Unauthorized" };
+  }
+
+  const activePage = Number(query.activePage) || 1;
+  const resolvedPage = Number(query.resolvedPage) || 1;
+  const limit = 20;
+  const activeOffset = (activePage - 1) * limit;
+  const resolvedOffset = (resolvedPage - 1) * limit;
+
+  const allBets = await db
+    .select({
+      betId: betsTable.id,
+      amount: betsTable.amount,
+      createdAt: betsTable.createdAt,
+      marketId: marketsTable.id,
+      marketTitle: marketsTable.title,
+      marketStatus: marketsTable.status,
+      resolvedOutcomeId: marketsTable.resolvedOutcomeId,
+      outcomeId: marketOutcomesTable.id,
+      outcomeTitle: marketOutcomesTable.title,
+    })
+    .from(betsTable)
+    .innerJoin(marketsTable, eq(betsTable.marketId, marketsTable.id))
+    .innerJoin(marketOutcomesTable, eq(betsTable.outcomeId, marketOutcomesTable.id))
+    .where(eq(betsTable.userId, user.id));
+
+  const activeBets = allBets.filter((b: any) => b.marketStatus === "active");
+  const resolvedBets = allBets.filter((b: any) => b.marketStatus === "resolved");
+
+  const paginatedActive = activeBets.slice(activeOffset, activeOffset + limit + 1);
+  const paginatedResolved = resolvedBets.slice(resolvedOffset, resolvedOffset + limit + 1);
+
+  const activeBetsWithOdds = await Promise.all(
+    paginatedActive.slice(0, limit).map(async (bet: any) => {
+      const allOutcomeBets = await db
+        .select()
+        .from(betsTable)
+        .where(eq(betsTable.marketId, bet.marketId));
+
+      const totalPool = allOutcomeBets.reduce((sum: number, b: any) => sum + b.amount, 0);
+      const outcomeBets = allOutcomeBets
+        .filter((b: any) => b.outcomeId === bet.outcomeId)
+        .reduce((sum: number, b: any) => sum + b.amount, 0);
+
+      const odds = totalPool > 0
+        ? Number(((outcomeBets / totalPool) * 100).toFixed(2))
+        : 0;
+
+      return {
+        betId: bet.betId,
+        amount: bet.amount,
+        createdAt: bet.createdAt,
+        marketId: bet.marketId,
+        marketTitle: bet.marketTitle,
+        outcomeId: bet.outcomeId,
+        outcomeTitle: bet.outcomeTitle,
+        odds,
+      };
+    }),
+  );
+
+  return {
+    balance: user.balance,
+    activeBets: {
+      data: activeBetsWithOdds,
+      hasMore: paginatedActive.length > limit,
+    },
+    resolvedBets: {
+      data: paginatedResolved.slice(0, limit).map((bet: any) => ({
+        betId: bet.betId,
+        amount: bet.amount,
+        createdAt: bet.createdAt,
+        marketId: bet.marketId,
+        marketTitle: bet.marketTitle,
+        outcomeId: bet.outcomeId,
+        outcomeTitle: bet.outcomeTitle,
+        won: bet.outcomeId === bet.resolvedOutcomeId,
+      })),
+      hasMore: paginatedResolved.length > limit,
+    },
+  };
+}

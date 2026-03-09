@@ -35,6 +35,40 @@ export interface Bet {
   createdAt: string;
 }
 
+export interface ActiveBet {
+  betId: number;
+  amount: number;
+  createdAt: string;
+  marketId: number;
+  marketTitle: string;
+  outcomeId: number;
+  outcomeTitle: string;
+  odds: number;
+}
+
+export interface ResolvedBet {
+  betId: number;
+  amount: number;
+  createdAt: string;
+  marketId: number;
+  marketTitle: string;
+  outcomeId: number;
+  outcomeTitle: string;
+  won: boolean;
+}
+
+export interface UserProfile {
+  balance: number;
+  activeBets: {
+    data: ActiveBet[];
+    hasMore: boolean;
+  };
+  resolvedBets: {
+    data: ResolvedBet[];
+    hasMore: boolean;
+  };
+}
+
 // API Client
 class ApiClient {
   private baseUrl: string;
@@ -119,6 +153,16 @@ class ApiClient {
       body: JSON.stringify({ outcomeId, amount }),
     });
   }
+
+    async getProfile(activePage: number = 1, resolvedPage: number = 1): Promise<UserProfile> {
+  return this.request(
+    `/api/users/profile?activePage=${activePage}&resolvedPage=${resolvedPage}`
+  );
 }
 
+}
+
+
+
 export const api = new ApiClient(API_BASE_URL);
+
