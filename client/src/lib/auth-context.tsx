@@ -23,10 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const parsedUser = JSON.parse(userData);
         // If balance is missing from old session, default to 0
-        setUser({ 
-          ...parsedUser, 
+        setUser({
+          ...parsedUser,
           token,
-          balance: parsedUser.balance ?? 0
+          balance: parsedUser.balance ?? 0,
+          role: parsedUser.role ?? "user",
         });
       } catch {
         localStorage.removeItem("auth_token");
@@ -38,18 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = (newUser: User) => {
-    setUser(newUser);
-    localStorage.setItem("auth_token", newUser.token);
-    localStorage.setItem(
-      "auth_user",
-      JSON.stringify({
-        id: newUser.id,
-        username: newUser.username,
-        email: newUser.email,
-        balance: newUser.balance,
-      }),
-    );
-  };
+  console.log("newUser received:", newUser);
+  setUser(newUser);
+  localStorage.setItem("auth_token", newUser.token);
+  localStorage.setItem(
+    "auth_user",
+    JSON.stringify({
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email,
+      balance: newUser.balance,
+      role: newUser.role,
+    }),
+  );
+};
 
   const logout = () => {
     setUser(null);

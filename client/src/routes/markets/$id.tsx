@@ -7,11 +7,83 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+function ResolveMarketPanel({
+  market,
+  onResolved,
+}: {
+  market: Market;
+  onResolved: () => void;
+}) {
+  const [selectedOutcomeId, setSelectedOutcomeId] = useState<number | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleResolve = async () => {
+    if (!selectedOutcomeId) return;
+    try {
+      setIsResolving(true);
+      setError(null);
+      await api.resolveMarket(market.id, selectedOutcomeId);
+      setSuccess(true);
+      onResolved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to resolve market");
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  return (
+    <Card className="border-orange-200 bg-orange-50">
+      <CardHeader>
+        <CardTitle className="text-orange-700">Admin: Resolve Market</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {error && (
+          <div className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="rounded-md bg-green-100 border border-green-200 px-4 py-3 text-sm text-green-700">
+            Market resolved and payouts distributed!
+          </div>
+        )}
+        <p className="text-sm text-orange-600">Select the winning outcome:</p>
+        <div className="space-y-2">
+          {market.outcomes.map((outcome) => (
+            <div
+              key={outcome.id}
+              className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                selectedOutcomeId === outcome.id
+                  ? "border-orange-500 bg-orange-100"
+                  : "border-gray-200 bg-white hover:border-orange-300"
+              }`}
+              onClick={() => setSelectedOutcomeId(outcome.id)}
+            >
+              {outcome.title}
+            </div>
+          ))}
+        </div>
+        <Button
+          className="w-full bg-orange-600 hover:bg-orange-700"
+          onClick={handleResolve}
+          disabled={isResolving || !selectedOutcomeId || success}
+        >
+          {isResolving ? "Resolving..." : "Resolve Market"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 function MarketDetailPage() {
   const { id } = useParams({ from: "/markets/$id" });
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [market, setMarket] = useState<Market | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +108,6 @@ function MarketDetailPage() {
         setIsLoading(false);
       }
     };
-
     loadMarket();
   }, [marketId]);
 
@@ -45,13 +116,11 @@ function MarketDetailPage() {
       setError("Please select an outcome and enter a bet amount");
       return;
     }
-
     try {
       setIsBetting(true);
       setError(null);
       await api.placeBet(marketId, selectedOutcomeId, parseFloat(betAmount));
       setBetAmount("");
-      // Reload market to show updated odds
       const updated = await api.getMarket(marketId);
       setMarket(updated);
     } catch (err) {
@@ -98,7 +167,6 @@ function MarketDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="max-w-3xl mx-auto px-4 space-y-6">
-        {/* Header */}
         <Button variant="outline" onClick={() => navigate({ to: "/" })}>
           ← Back
         </Button>
@@ -124,7 +192,6 @@ function MarketDetailPage() {
               </div>
             )}
 
-            {/* Outcomes Display */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold">Outcomes</h3>
               {market.outcomes.map((outcome) => (
@@ -153,7 +220,38 @@ function MarketDetailPage() {
               ))}
             </div>
 
-            {/* Market Stats */}
+            {market.totalMarketBets > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Bet Distribution</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={market.outcomes.map((o) => ({
+                        name: o.title,
+                        value: o.totalBets,
+                      }))}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      dataKey="value"
+                      label={({ name, percent }) =>
+                        `${name} ${((percent ?? 0) * 100).toFixed(1)}%`
+                      }
+                    >
+                      {market.outcomes.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={["#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd"][index % 4]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
             <div className="rounded-lg p-6 border border-primary/20 bg-primary/5">
               <p className="text-sm text-muted-foreground mb-1">Total Market Value</p>
               <p className="text-4xl font-bold text-primary">
@@ -161,7 +259,6 @@ function MarketDetailPage() {
               </p>
             </div>
 
-            {/* Betting Section */}
             {market.status === "active" && (
               <Card className="bg-secondary/5">
                 <CardHeader>
@@ -175,7 +272,6 @@ function MarketDetailPage() {
                         "None selected"}
                     </div>
                   </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="betAmount">Bet Amount ($)</Label>
                     <Input
@@ -189,7 +285,6 @@ function MarketDetailPage() {
                       disabled={isBetting}
                     />
                   </div>
-
                   <Button
                     className="w-full text-lg py-6"
                     onClick={handlePlaceBet}
@@ -207,6 +302,15 @@ function MarketDetailPage() {
                   <p className="text-muted-foreground">This market has been resolved.</p>
                 </CardContent>
               </Card>
+            )}
+
+            {market.status === "active" && user?.role === "admin" && (
+              <ResolveMarketPanel
+                market={market}
+                onResolved={() => {
+                  api.getMarket(marketId).then(setMarket);
+                }}
+              />
             )}
           </CardContent>
         </Card>

@@ -52,6 +52,7 @@ export async function handleRegister({
     username: newUser[0]!.username,
     email: newUser[0]!.email,
     balance: newUser[0]!.balance,
+    role: newUser[0]!.role,
     token,
   };
 }
@@ -85,10 +86,11 @@ export async function handleLogin({
   const token = await jwt.sign({ userId: user.id });
 
   return {
-    id: user.id,
+      id: user.id,
     username: user.username,
     email: user.email,
     balance: user.balance,
+    role: user.role,
     token,
   };
 }
@@ -366,6 +368,94 @@ export async function handlePlaceBet({
     return { error: error.message || "Failed to place bet" };
   }
 }
+export async function handleResolveMarket({
+  params,
+  body,
+  set,
+  user,
+}: {
+  params: { id: number };
+  body: { outcomeId: number };
+  set: any;
+  user: any;
+}) {
+  if (!user || user.role !== "admin") {
+    set.status = 403;
+    return { error: "Forbidden: admins only" };
+  }
+
+  const marketId = params.id;
+  const { outcomeId } = body;
+
+  const market = await (db.query as any).marketsTable.findFirst({
+    where: eq(marketsTable.id, marketId),
+  });
+
+  if (!market) {
+    set.status = 404;
+    return { error: "Market not found" };
+  }
+
+  if (market.status === "resolved") {
+    set.status = 400;
+    return { error: "Market already resolved" };
+  }
+
+  const outcome = await (db.query as any).marketOutcomesTable.findFirst({
+    where: and(
+      eq(marketOutcomesTable.id, outcomeId),
+      eq(marketOutcomesTable.marketId, marketId)
+    ),
+  });
+
+  if (!outcome) {
+    set.status = 404;
+    return { error: "Outcome not found" };
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      // 1. Mark market as resolved
+      await tx
+        .update(marketsTable)
+        .set({ status: "resolved", resolvedOutcomeId: outcomeId })
+        .where(eq(marketsTable.id, marketId));
+
+      // 2. Get all bets for this market
+      const allBets = await tx
+        .select()
+        .from(betsTable)
+        .where(eq(betsTable.marketId, marketId));
+
+      const totalPool = allBets.reduce((sum: number, b: any) => sum + b.amount, 0);
+
+      // 3. Get winning bets
+      const winningBets = allBets.filter((b: any) => b.outcomeId === outcomeId);
+      const totalWinningStake = winningBets.reduce((sum: number, b: any) => sum + b.amount, 0);
+
+      // 4. Distribute payouts to winners
+      if (totalWinningStake > 0) {
+        for (const bet of winningBets) {
+          const payout = (bet.amount / totalWinningStake) * totalPool;
+          const currentUser = await (tx.query as any).usersTable.findFirst({
+            where: eq(usersTable.id, bet.userId),
+          });
+          if (currentUser) {
+            await tx
+              .update(usersTable)
+              .set({ balance: currentUser.balance + payout })
+              .where(eq(usersTable.id, bet.userId));
+          }
+        }
+      }
+    });
+
+    return { success: true, message: "Market resolved and payouts distributed" };
+  } catch (error: any) {
+    set.status = 500;
+    return { error: error.message || "Failed to resolve market" };
+  }
+}
 
 export async function handleGetProfile({
   user,
@@ -459,4 +549,5 @@ export async function handleGetProfile({
       hasMore: paginatedResolved.length > limit,
     },
   };
+   
 }

@@ -24,6 +24,7 @@ export interface User {
   email: string;
   token: string;
   balance: number;
+  role: "user" | "admin";
 }
 
 export interface Bet {
@@ -153,6 +154,12 @@ class ApiClient {
       body: JSON.stringify({ outcomeId, amount }),
     });
   }
+  async resolveMarket(marketId: number, outcomeId: number): Promise<{ success: boolean }> {
+    return this.request(`/api/markets/${marketId}/resolve`, {
+      method: "POST",
+      body: JSON.stringify({ outcomeId }),
+    });
+}
 
     async getProfile(activePage: number = 1, resolvedPage: number = 1): Promise<UserProfile> {
   return this.request(
