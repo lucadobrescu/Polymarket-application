@@ -108,7 +108,14 @@ function MarketDetailPage() {
         setIsLoading(false);
       }
     };
+
     loadMarket();
+
+    const interval = setInterval(() => {
+      api.getMarket(marketId).then(setMarket).catch(() => { });
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [marketId]);
 
   const handlePlaceBet = async () => {

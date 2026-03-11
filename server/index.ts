@@ -4,6 +4,7 @@ import { authRoutes } from "./src/api/auth.routes";
 import { marketRoutes } from "./src/api/markets.routes";
 import { userRoutes } from "./src/api/users.routes";
 import { jwtPlugin } from "./src/plugins/jwt";
+import { leaderboardRoutes } from "./src/api/leaderboard.routes";
 
 const PORT = process.env.PORT || 4001;
 
@@ -25,9 +26,10 @@ export const app = new Elysia()
       return { error: "Invalid request" };
     }
   })
-  .use(authRoutes)
+   .use(authRoutes)
   .use(marketRoutes)
-  .use(userRoutes);
+  .use(userRoutes)
+  .use(leaderboardRoutes);
 
 if (import.meta.main) {
   app.listen(PORT);

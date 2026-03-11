@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import db from "../db";
 import { usersTable, marketsTable, marketOutcomesTable, betsTable } from "../db/schema";
 import { hashPassword, verifyPassword, type AuthTokenPayload } from "../lib/auth";
@@ -455,6 +455,38 @@ export async function handleResolveMarket({
     set.status = 500;
     return { error: error.message || "Failed to resolve market" };
   }
+}
+export async function handleGetLeaderboard({
+  query,
+}: {
+  query: { page?: number };
+}) {
+  const page = Number(query.page) || 1;
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
+  const users = await db
+    .select({
+      username: usersTable.username,
+      balance: usersTable.balance,
+    })
+    .from(usersTable)
+    .orderBy(sql`${usersTable.balance} DESC`)
+    .limit(limit + 1)
+    .offset(offset);
+
+  const hasMore = users.length > limit;
+  const paginatedUsers = users.slice(0, limit);
+
+  return {
+    data: paginatedUsers.map((user, index) => ({
+      rank: offset + index + 1,
+      username: user.username,
+      balance: user.balance,
+      earnings: user.balance - 1000,
+    })),
+    hasMore,
+  };
 }
 
 export async function handleGetProfile({

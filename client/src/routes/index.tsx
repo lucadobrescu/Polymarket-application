@@ -32,9 +32,15 @@ function DashboardPage() {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
+  loadMarkets();
+
+  const interval = setInterval(() => {
     loadMarkets();
-  }, [status, page]);
+  }, 30000);
+
+  return () => clearInterval(interval);
+}, [status, page]);
 
   const handleStatusChange = (newStatus: "active" | "resolved") => {
     setStatus(newStatus);
@@ -63,25 +69,28 @@ function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-  <div>
-    <h1 className="text-4xl font-bold text-gray-900">Markets</h1>
-    <div className="flex flex-col gap-1 mt-2">
-      <p className="text-gray-600">Welcome back, {user?.username}!</p>
-      <p className="text-indigo-600 font-bold">
-        Balance: {user?.balance !== undefined ? `${user.balance.toFixed(2)} tokens` : 'Loading...'}
-      </p>
-    </div>
-  </div>
-  <div className="flex items-center gap-4">
-    <Button variant="outline" onClick={() => navigate({ to: "/profile" })}>
-      Profile
-    </Button>
-    <Button variant="outline" onClick={() => navigate({ to: "/auth/logout" })}>
-      Logout
-    </Button>
-    <Button onClick={() => navigate({ to: "/markets/new" })}>Create Market</Button>
-  </div>
-</div>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Markets</h1>
+            <div className="flex flex-col gap-1 mt-2">
+              <p className="text-gray-600">Welcome back, {user?.username}!</p>
+              <p className="text-indigo-600 font-bold">
+                Balance: {user?.balance !== undefined ? `${user.balance.toFixed(2)} tokens` : 'Loading...'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={() => navigate({ to: "/leaderboard" })}>
+              🏆 Leaderboard
+            </Button>
+            <Button variant="outline" onClick={() => navigate({ to: "/profile" })}>
+              Profile
+            </Button>
+            <Button variant="outline" onClick={() => navigate({ to: "/auth/logout" })}>
+              Logout
+            </Button>
+            <Button onClick={() => navigate({ to: "/markets/new" })}>Create Market</Button>
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="mb-6 flex gap-4">

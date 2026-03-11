@@ -70,6 +70,18 @@ export interface UserProfile {
   };
 }
 
+export interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  balance: number;
+  earnings: number; // balance - 1000
+}
+
+export interface LeaderboardResponse {
+  data: LeaderboardEntry[];
+  hasMore: boolean;
+}
+
 // API Client
 class ApiClient {
   private baseUrl: string;
@@ -167,7 +179,12 @@ class ApiClient {
   );
 }
 
+async getLeaderboard(page: number = 1): Promise<LeaderboardResponse> {
+  return this.request(`/api/leaderboard?page=${page}`);
 }
+
+}
+
 
 
 
