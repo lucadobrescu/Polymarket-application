@@ -8,7 +8,7 @@
 
 ## What is PredictMarket?
 
-PredictMarket is a web application where users can create markets on real world events, place bets on outcomes using tokens, and win rewards based on how accurately they predict results. Think of it as a simplified version of platforms like Polymarket — built entirely from scratch as part of this internship challenge.
+PredictMarket is a web application where users can create markets on real world events, place bets on outcomes using tokens, and win rewards based on how accurately they predict results. Think of it as a simplified version of platforms like Polymarket , built entirely from scratch as part of this internship challenge.
 
 Every user starts with 1000 tokens. No deposits, no real money. The goal is to trade on your predictions and grow your balance.
 
@@ -19,7 +19,7 @@ Every user starts with 1000 tokens. No deposits, no real money. The goal is to t
 ### Frontend
 | Technology | Why I chose it |
 |---|---|
-| React + TypeScript | Industry standard. TypeScript catches bugs at compile time instead of runtime — critical when handling user balances and financial data |
+| React + TypeScript | Industry standard. TypeScript catches bugs at compile time instead of runtime , critical when handling user balances and financial data |
 | TanStack Router | File-based routing with full TypeScript support. Cleaner than React Router for typed params |
 | TanStack Form | Lightweight form handling with built-in validation. No need for heavy libraries like Formik |
 | Tailwind CSS | Utility-first CSS that keeps styles colocated with components. No context switching between files |
@@ -30,8 +30,8 @@ Every user starts with 1000 tokens. No deposits, no real money. The goal is to t
 |---|---|
 | Bun | Faster JavaScript runtime than Node.js. Built-in SQLite support, TypeScript out of the box |
 | Elysia.js | Designed specifically for Bun. End-to-end type safety between backend and frontend |
-| JWT (JSON Web Tokens) | Stateless authentication — no server-side session storage needed. Scales horizontally |
-| Argon2 | The gold standard for password hashing. Deliberately slow and memory-intensive — brute force is computationally infeasible |
+| JWT (JSON Web Tokens) | Stateless authentication , no server-side session storage needed. Scales horizontally |
+| Argon2 | The gold standard for password hashing. Deliberately slow and memory-intensive , brute force is computationally infeasible |
 | SHA-256 | Fast cryptographic hashing for API keys. Speed is acceptable here since keys are long random strings |
 | Resend | Simple transactional email API for verification and password reset emails |
 
@@ -59,7 +59,7 @@ I implemented two independent password recovery paths because I wanted users to 
 
 **Email reset:** The user enters their email, a unique UUID reset token is generated and stored in the database with a one hour expiry timestamp, and a password reset link is sent via Resend. When the user clicks the link, the token is verified against the database, the expiry is checked, the new password is hashed and stored, and the token is immediately deleted so it cannot be reused.
 
-**Security question reset:** The user enters their email, the system retrieves their personal security question, and they must answer it correctly. The answer is compared against a stored Argon2 hash — the same security model as passwords. On success the password is updated directly.
+**Security question reset:** The user enters their email, the system retrieves their personal security question, and they must answer it correctly. The answer is compared against a stored Argon2 hash , the same security model as passwords. On success the password is updated directly.
 
 ### Prediction Markets
 
@@ -69,9 +69,9 @@ The dashboard lists all markets with real-time odds, total token volume, and par
 
 ### Betting and Odds Calculation
 
-Odds are not fixed — they are calculated dynamically from the actual bets in the database. If 300 tokens are bet on "Yes" out of a total pool of 500 tokens, the odds for "Yes" are 60%. Every time a new bet is placed, the odds across all outcomes recalculate automatically.
+Odds are not fixed , they are calculated dynamically from the actual bets in the database. If 300 tokens are bet on "Yes" out of a total pool of 500 tokens, the odds for "Yes" are 60%. Every time a new bet is placed, the odds across all outcomes recalculate automatically.
 
-This is intentional. It mirrors how real prediction markets work — the crowd's money determines the probability. No manual odds setting needed.
+This is intentional. It mirrors how real prediction markets work , the crowd's money determines the probability. No manual odds setting needed.
 
 ### ACID Transactions for Financial Integrity
 
@@ -89,23 +89,23 @@ If the server crashes between steps 3 and 4, the transaction rolls back entirely
 
 When an admin resolves a market by selecting the winning outcome, the system distributes the entire token pool to winning bettors proportionally to their stake.
 
-If a user bet 100 tokens on the winning outcome and the total winning stake was 400 tokens, they receive 25% of the full pool. This means winners always receive more than they bet — they absorb the losing side's tokens.
+If a user bet 100 tokens on the winning outcome and the total winning stake was 400 tokens, they receive 25% of the full pool. This means winners always receive more than they bet , they absorb the losing side's tokens.
 
-Edge case handled: if nobody bet on the winning outcome, a full refund is issued to every bettor rather than burning the tokens. This was a deliberate design decision — punishing users for an admin choosing an unpopular outcome would be unfair.
+Edge case handled: if nobody bet on the winning outcome, a full refund is issued to every bettor rather than burning the tokens. This was a deliberate design decision , punishing users for an admin choosing an unpopular outcome would be unfair.
 
 All payout calculations and balance updates run inside a single transaction for the same integrity reasons as betting.
 
 ### Real-Time Updates
 
-The dashboard and market detail pages poll the server every 30 seconds to fetch updated odds. When multiple users are betting simultaneously, everyone watching the same market sees the odds shift in near real-time without needing to refresh the page.
+The dashboard and market detail pages poll the server every 30 seconds to fetch updated odds. When multiple users are betting simultaneously, everyone watching the same market sees the odds shift in near real,time without needing to refresh the page.
 
-I chose polling over WebSockets deliberately. Bets are not high-frequency events — a 30-second delay is imperceptible to users. WebSockets would add significant connection management complexity for minimal practical benefit at this scale. The right tool for the job is the simplest one that meets the requirements.
+I chose polling over WebSockets deliberately. Bets are not high,frequency events , a 30,second delay is imperceptible to users. WebSockets would add significant connection management complexity for minimal practical benefit at this scale. The right tool for the job is the simplest one that meets the requirements.
 
 ### Role System and Admin Access
 
-Users have one of two roles: `user` or `admin`. Roles are stored in the database and verified server-side on every relevant request. The frontend conditionally renders the admin panel based on the role in the JWT payload, but the backend independently checks the role from the database before allowing any admin action.
+Users have one of two roles: `user` or `admin`. Roles are stored in the database and verified server,side on every relevant request. The frontend conditionally renders the admin panel based on the role in the JWT payload, but the backend independently checks the role from the database before allowing any admin action.
 
-This means manipulating localStorage or forging a JWT payload with `"role": "admin"` accomplishes nothing — the server always goes to the database.
+This means manipulating localStorage or forging a JWT payload with `"role": "admin"` accomplishes nothing , the server always goes to the database.
 
 ### API Keys for Bot Access
 
@@ -113,15 +113,15 @@ Hank's requirements mentioned that users might want to place bets programmatical
 
 From the profile page, users can generate a personal API key in the format `sk_<random32chars>`. The raw key is shown exactly once and never stored. Only the SHA-256 hash of the key is persisted in the database.
 
-On each request, the server hashes the incoming key and compares it against stored hashes. This means a database leak exposes nothing useful — SHA-256 hashes of long random keys are computationally irreversible.
+On each request, the server hashes the incoming key and compares it against stored hashes. This means a database leak exposes nothing useful , SHA-256 hashes of long random keys are computationally irreversible.
 
-The authentication layer is split into two separate concerns. The JWT plugin (plugins/jwt.ts) handles token signing and verification and is registered globally on the Elysia app. The auth middleware (middleware/auth.middleware.ts) is a scoped Elysia plugin that runs on protected routes — it tries JWT first, then falls back to API key if no Bearer token is present. The critical implementation detail is that it must use .as("scoped") — without this, Elysia doesn't propagate the derived user object to route handlers. This took significant debugging to discover.
+The authentication layer is split into two separate concerns. The JWT plugin (plugins/jwt.ts) handles token signing and verification and is registered globally on the Elysia app. The auth middleware (middleware/auth.middleware.ts) is a scoped Elysia plugin that runs on protected routes , it tries JWT first, then falls back to API key if no Bearer token is present. The critical implementation detail is that it must use .as("scoped") , without this, Elysia doesn't propagate the derived user object to route handlers. This took significant debugging to discover.
 
 This is the same architecture pattern used by Stripe, GitHub, and most production APIs.
 
 ### Leaderboard
 
-Users are ranked by current balance in descending order. Earnings are displayed as the difference from the starting balance of 1000 tokens — positive numbers mean profit, negative means loss. The leaderboard updates as markets resolve and payouts distribute.
+Users are ranked by current balance in descending order. Earnings are displayed as the difference from the starting balance of 1000 tokens , positive numbers mean profit, negative means loss. The leaderboard updates as markets resolve and payouts distribute.
 
 ---
 
@@ -147,7 +147,7 @@ api_keys        — id, userId → users.id, keyHash, createdAt
 
 ### Why outcomes are a separate table
 
-A market can have any number of outcomes — binary (Yes/No), ternary (Candidate A/B/C), or more. Storing outcomes as columns in the markets table would require knowing the maximum number of outcomes upfront and leaving most columns empty for simple markets. A separate table with a foreign key is the correct normalized approach.
+A market can have any number of outcomes , binary (Yes/No), ternary (Candidate A/B/C), or more. Storing outcomes as columns in the markets table would require knowing the maximum number of outcomes upfront and leaving most columns empty for simple markets. A separate table with a foreign key is the correct normalized approach.
 
 ### Why indexes
 
@@ -170,19 +170,19 @@ Markets with zero bets must still appear on the dashboard. A regular INNER JOIN 
 
 **Why Argon2 and not bcrypt or SHA-256 for passwords?**
 
-bcrypt is acceptable but Argon2 won the Password Hashing Competition in 2015 and is the current recommendation. SHA-256 is completely wrong for passwords — it is fast, which is the opposite of what you want. A fast hash means an attacker can test billions of guesses per second. Argon2 is designed to be slow and configurable in both time and memory cost.
+bcrypt is acceptable but Argon2 won the Password Hashing Competition in 2015 and is the current recommendation. SHA-256 is completely wrong for passwords , it is fast, which is the opposite of what you want. A fast hash means an attacker can test billions of guesses per second. Argon2 is designed to be slow and configurable in both time and memory cost.
 
 **Why SHA-256 for API keys?**
 
-The threat model is different. An API key is a 32-character random UUID — there are 2^128 possible values. Brute force is mathematically impossible regardless of hash speed. Using Argon2 would add 200ms to every API request, which is unacceptable for programmatic access. SHA-256 is the right choice here.
+The threat model is different. An API key is a 32-character random UUID , there are 2^128 possible values. Brute force is mathematically impossible regardless of hash speed. Using Argon2 would add 200ms to every API request, which is unacceptable for programmatic access. SHA-256 is the right choice here.
 
 **Why JWT and not sessions?**
 
-Sessions require the server to store session data and look it up on every request. JWT tokens are self-contained — the server verifies the cryptographic signature without any database query. This makes the authentication layer stateless and horizontally scalable. The tradeoff is that tokens cannot be revoked before expiry, which is acceptable for this application.
+Sessions require the server to store session data and look it up on every request. JWT tokens are self-contained , the server verifies the cryptographic signature without any database query. This makes the authentication layer stateless and horizontally scalable. The tradeoff is that tokens cannot be revoked before expiry, which is acceptable for this application.
 
 **Why verification tokens are UUIDs and not shorter codes?**
 
-A 6-digit email verification code can be brute-forced in at most 1,000,000 attempts. A UUID has 2^122 possible values — brute force is not a practical attack. The user experience difference is minimal since they click a link rather than type the token manually.
+A 6-digit email verification code can be brute-forced in at most 1,000,000 attempts. A UUID has 2^122 possible values , brute force is not a practical attack. The user experience difference is minimal since they click a link rather than type the token manually.
 
 ---
 
