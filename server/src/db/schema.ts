@@ -1,39 +1,44 @@
 import {
-  int,
   sqliteTable,
   text,
   real,
   integer,
-  primaryKey,
   uniqueIndex,
   index,
 } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
-// Users table
+// ─── Users ────────────────────────────────────────────────────────────────────
+
 export const usersTable = sqliteTable(
   "users",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    username: text("username").notNull().unique(),
-    email: text("email").notNull().unique(),
+    username: text("username").notNull(),
+    email: text("email").notNull(),
     passwordHash: text("password_hash").notNull(),
-    balance: real("balance").notNull().default(1000), // Coloana NOUĂ pentru balanță
-    role: text("role", { enum: ["user", "admin"] }).notNull().default("user"),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .$defaultFn(() => new Date()),
     updatedAt: integer("updated_at", { mode: "timestamp" })
       .notNull()
       .$defaultFn(() => new Date()),
-  },
+    balance: real("balance").notNull().default(1000),
+    role: text("role", { enum: ["user", "admin"] }).notNull().default("user"),
+    securityQuestion: text("security_question"),
+    securityAnswerHash: text("security_answer_hash"),
+    emailVerified: integer("email_verified", { mode: "boolean" }).default(false),    
+    verificationToken: text("verification_token"),
+    resetToken: text("reset_token"),
+    resetTokenExpiry: integer("reset_token_expiry"),  },
   (table) => ({
     usernameIdx: uniqueIndex("users_username_idx").on(table.username),
     emailIdx: uniqueIndex("users_email_idx").on(table.email),
   }),
 );
 
-// Markets table
+// ─── Markets ──────────────────────────────────────────────────────────────────
+
 export const marketsTable = sqliteTable(
   "markets",
   {
@@ -46,10 +51,10 @@ export const marketsTable = sqliteTable(
     createdBy: integer("created_by")
       .notNull()
       .references(() => usersTable.id),
+    resolvedOutcomeId: integer("resolved_outcome_id"),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .$defaultFn(() => new Date()),
-    resolvedOutcomeId: integer("resolved_outcome_id"),
   },
   (table) => ({
     createdByIdx: index("markets_created_by_idx").on(table.createdBy),
@@ -57,7 +62,8 @@ export const marketsTable = sqliteTable(
   }),
 );
 
-// Market Outcomes table
+// ─── Market Outcomes ──────────────────────────────────────────────────────────
+
 export const marketOutcomesTable = sqliteTable(
   "market_outcomes",
   {
@@ -66,14 +72,15 @@ export const marketOutcomesTable = sqliteTable(
       .notNull()
       .references(() => marketsTable.id),
     title: text("title").notNull(),
-    position: integer("position").notNull(), // for ordering outcomes
+    position: integer("position").notNull(),
   },
   (table) => ({
     marketIdIdx: index("market_outcomes_market_id_idx").on(table.marketId),
   }),
 );
 
-// Bets table
+// ─── Bets ─────────────────────────────────────────────────────────────────────
+
 export const betsTable = sqliteTable(
   "bets",
   {
@@ -99,10 +106,31 @@ export const betsTable = sqliteTable(
   }),
 );
 
-// Relations
+// ─── API Keys ─────────────────────────────────────────────────────────────────
+
+export const apiKeysTable = sqliteTable(
+  "api_keys",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => usersTable.id),
+    keyHash: text("key_hash").notNull().unique(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    userIdIdx: index("api_keys_user_id_idx").on(table.userId),
+  }),
+);
+
+// ─── Relations ────────────────────────────────────────────────────────────────
+
 export const usersRelations = relations(usersTable, ({ many }) => ({
   createdMarkets: many(marketsTable, { relationName: "createdBy" }),
   bets: many(betsTable, { relationName: "bets" }),
+  apiKeys: many(apiKeysTable, { relationName: "apiKeys" }),
 }));
 
 export const marketsRelations = relations(marketsTable, ({ one, many }) => ({
@@ -119,14 +147,17 @@ export const marketsRelations = relations(marketsTable, ({ one, many }) => ({
   }),
 }));
 
-export const marketOutcomesRelations = relations(marketOutcomesTable, ({ one, many }) => ({
-  market: one(marketsTable, {
-    fields: [marketOutcomesTable.marketId],
-    references: [marketsTable.id],
-    relationName: "outcomes",
+export const marketOutcomesRelations = relations(
+  marketOutcomesTable,
+  ({ one, many }) => ({
+    market: one(marketsTable, {
+      fields: [marketOutcomesTable.marketId],
+      references: [marketsTable.id],
+      relationName: "outcomes",
+    }),
+    bets: many(betsTable, { relationName: "bets" }),
   }),
-  bets: many(betsTable, { relationName: "bets" }),
-}));
+);
 
 export const betsRelations = relations(betsTable, ({ one }) => ({
   user: one(usersTable, {
@@ -143,5 +174,13 @@ export const betsRelations = relations(betsTable, ({ one }) => ({
     fields: [betsTable.outcomeId],
     references: [marketOutcomesTable.id],
     relationName: "bets",
+  }),
+}));
+
+export const apiKeysRelations = relations(apiKeysTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [apiKeysTable.userId],
+    references: [usersTable.id],
+    relationName: "apiKeys",
   }),
 }));

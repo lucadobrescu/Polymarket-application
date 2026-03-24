@@ -1,12 +1,9 @@
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import { eq } from "drizzle-orm";
 import * as schema from "./schema";
 import { hashPassword } from "../lib/auth";
 
-const db = drizzle(new Database(process.env.DB_FILE_NAME || "database.sqlite"), {
-  schema,
-});
+const db = drizzle(new Database(process.env.DB_FILE_NAME || "database.sqlite"), { schema });
 
 const USERS = [
   { username: "alice", email: "alice@example.com", password: "password123" },
@@ -16,38 +13,44 @@ const USERS = [
 
 const MARKETS = [
   {
-    title: "Will Bitcoin reach $100k by end of 2024?",
-    description: "Bitcoin price prediction for the end of the year",
+    title: "Will Bitcoin reach $100k by end of 2025?",
+    description: "Bitcoin has been on a massive bull run. Will it hit the coveted $100k mark?",
     outcomes: ["Yes", "No"],
   },
   {
     title: "Will it rain tomorrow in NYC?",
-    description: "Weather prediction for New York City",
+    description: "Weather prediction for New York City tomorrow.",
     outcomes: ["Yes", "No", "Maybe"],
   },
   {
-    title: "Who will win the 2024 US Presidential Election?",
-    description: "Political prediction market",
-    outcomes: ["Candidate A", "Candidate B", "Other"],
+    title: "Who will win the 2026 FIFA World Cup?",
+    description: "The biggest football tournament on the planet.",
+    outcomes: ["Brazil", "France", "Argentina", "Other"],
+  },
+  {
+    title: "Will OpenAI release GPT-5 before end of 2025?",
+    description: "OpenAI has been hinting at their next flagship model.",
+    outcomes: ["Yes", "No"],
+  },
+  {
+    title: "Will Tesla stock reach $400 by Q3 2025?",
+    description: "Tesla stock prediction for the third quarter of 2025.",
+    outcomes: ["Yes", "No"],
   },
 ];
 
 async function deleteAllData() {
   console.log("🗑️  Deleting all data...");
-
-  // Delete in order (respecting foreign keys)
   await db.delete(schema.betsTable);
   console.log("  ✓ Deleted bets");
-
+  await db.delete(schema.apiKeysTable);
+  console.log("  ✓ Deleted api keys");
   await db.delete(schema.marketOutcomesTable);
   console.log("  ✓ Deleted market outcomes");
-
   await db.delete(schema.marketsTable);
   console.log("  ✓ Deleted markets");
-
   await db.delete(schema.usersTable);
   console.log("  ✓ Deleted users");
-
   console.log("✅ All data deleted\n");
 }
 
@@ -73,9 +76,8 @@ async function seedDatabase() {
         passwordHash,
       })
       .returning();
-
     createdUsers.push({
-      id: created[0].id,
+      id: created[0]!.id,
       username: user.username,
       email: user.email,
       password: user.password,
@@ -89,8 +91,8 @@ async function seedDatabase() {
   let outcomeCount = 0;
 
   for (let i = 0; i < MARKETS.length; i++) {
-    const marketData = MARKETS[i];
-    const createdBy = createdUsers[i % createdUsers.length].id;
+    const marketData = MARKETS[i]!;
+    const createdBy = createdUsers[i % createdUsers.length]!.id;
 
     const market = await db
       .insert(schema.marketsTable)
@@ -104,11 +106,10 @@ async function seedDatabase() {
     marketCount++;
     console.log(`  ✓ Created market: "${marketData.title}"`);
 
-    // Create outcomes for this market
     for (let j = 0; j < marketData.outcomes.length; j++) {
       await db.insert(schema.marketOutcomesTable).values({
-        marketId: market[0].id,
-        title: marketData.outcomes[j],
+        marketId: market[0]!.id,
+        title: marketData.outcomes[j]!,
         position: j,
       });
       outcomeCount++;
@@ -120,19 +121,17 @@ async function seedDatabase() {
   console.log("\n💰 Creating sample bets...");
   let betCount = 0;
 
-  // Get all markets and outcomes
-  const markets = await db.query.marketsTable.findMany({
+  const markets = await (db.query as any).marketsTable.findMany({
     with: { outcomes: true },
   });
 
   for (let i = 0; i < markets.length; i++) {
-    const market = markets[i];
-    const user = createdUsers[i % createdUsers.length];
+    const market = markets[i]!;
+    const user = createdUsers[i % createdUsers.length]!;
 
-    // Place bets on different outcomes
     for (let j = 0; j < market.outcomes.length; j++) {
-      const outcome = market.outcomes[j];
-      const betAmount = 50 + j * 25; // 50, 75, 100, etc.
+      const outcome = market.outcomes[j]!;
+      const betAmount = 50 + j * 25;
 
       await db.insert(schema.betsTable).values({
         userId: user.id,
@@ -140,10 +139,8 @@ async function seedDatabase() {
         outcomeId: outcome.id,
         amount: betAmount,
       });
-
       betCount++;
     }
-
     console.log(`  ✓ Created ${market.outcomes.length} bets on "${market.title}"`);
   }
 
@@ -155,17 +152,14 @@ async function seedDatabase() {
   console.log(`  • ${marketCount} markets`);
   console.log(`  • ${outcomeCount} outcomes`);
   console.log(`  • ${betCount} bets`);
-
   console.log("\n" + "=".repeat(60));
   console.log("🔑 TEST CREDENTIALS (for login):");
   console.log("=".repeat(60));
-
   for (const user of createdUsers) {
     console.log(`\n  Username: ${user.username}`);
     console.log(`  Email:    ${user.email}`);
     console.log(`  Password: ${user.password}`);
   }
-
   console.log("\n" + "=".repeat(60));
   console.log(
     "\n✨ Database is ready! Start the app and login with any of the above credentials.\n",
@@ -174,7 +168,6 @@ async function seedDatabase() {
 
 async function main() {
   const command = process.argv[2];
-
   if (command === "reset") {
     await deleteAllData();
     await seedDatabase();

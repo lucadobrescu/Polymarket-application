@@ -4,6 +4,14 @@
 @import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #0f1117 inset !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+}
 
 :root {
   --background: oklch(1 0 0);

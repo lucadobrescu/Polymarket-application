@@ -104,6 +104,7 @@ client/
 ```
 DB_FILE_NAME=database.sqlite
 PORT=4001
+RESEND_API_KEY=re_FZgjUJoj_NKzp94o2jMP8LKXmYykhW9iP
 ```
 
 ### Client (Vite)

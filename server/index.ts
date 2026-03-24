@@ -9,12 +9,10 @@ import { leaderboardRoutes } from "./src/api/leaderboard.routes";
 const PORT = process.env.PORT || 4001;
 
 export const app = new Elysia()
-  .use(
-    cors({
-      origin: "*",
-      allowedHeaders: ["Content-Type", "Authorization"],
-    }),
-  )
+  .use(cors({
+    origin: "*",
+    allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
+  }))
   .use(jwtPlugin)
   .onError(({ code, set }) => {
     if (code === "NOT_FOUND") {
@@ -26,7 +24,7 @@ export const app = new Elysia()
       return { error: "Invalid request" };
     }
   })
-   .use(authRoutes)
+  .use(authRoutes)
   .use(marketRoutes)
   .use(userRoutes)
   .use(leaderboardRoutes);

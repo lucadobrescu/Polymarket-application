@@ -17,7 +17,7 @@ export function MarketCard({ market }: MarketCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-xl">{market.title}</CardTitle>
-            <CardDescription>By: {market.creator || "Unknown"}</CardDescription>
+            <CardDescription>By: {market.creator.username || "Unknown"}</CardDescription>
           </div>
           <Badge variant={market.status === "active" ? "default" : "secondary"}>
             {market.status === "active" ? "Active" : "Resolved"}

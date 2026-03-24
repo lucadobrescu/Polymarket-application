@@ -1,6 +1,8 @@
 import { Elysia, t } from "elysia";
 import { authMiddleware } from "../middleware/auth.middleware";
-import { handleGetProfile } from "./handlers";
+import { handleGetProfile, handleGenerateApiKey, handleGetApiKey } from "./handlers";
+
+// ─── User Routes ──────────────────────────────────────────────────────────────
 
 export const userRoutes = new Elysia({ prefix: "/api/users" })
   .use(authMiddleware)
@@ -14,10 +16,16 @@ export const userRoutes = new Elysia({ prefix: "/api/users" })
       },
     },
     (app) =>
-      app.get("/profile", handleGetProfile, {
-        query: t.Object({
-          activePage: t.Optional(t.Numeric()),
-          resolvedPage: t.Optional(t.Numeric()),
-        }),
-      }),
+      app
+        // ─── Profile ───────────────────────────────────────────────────────
+        .get("/profile", handleGetProfile as any, {
+          query: t.Object({
+            activePage: t.Optional(t.Numeric()),
+            resolvedPage: t.Optional(t.Numeric()),
+          }),
+        })
+
+        // ─── API Keys ──────────────────────────────────────────────────────
+        .get("/api-key", handleGetApiKey as any)
+        .post("/api-key/generate", handleGenerateApiKey as any),
   );

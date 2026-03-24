@@ -3,10 +3,6 @@ import { useNavigate, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -14,11 +10,9 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+
   const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
     onSubmit: async (formData) => {
       const values = formData.value;
       try {
@@ -36,35 +30,52 @@ function LoginPage() {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-3xl">Login</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen bg-[#0f1117] flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <span className="text-indigo-400 font-bold text-2xl tracking-tight">
+            📈 PredictMarket
+          </span>
+          <p className="text-[#94a3b8] text-sm mt-2">
+            Trade on the outcomes of real world events
+          </p>
+        </div>
+
+        <div className="border border-[#2a2d3e] bg-[#1a1d2e] p-8">
+          <h1 className="text-2xl font-bold text-white mb-1">Welcome back</h1>
+          <p className="text-[#94a3b8] text-sm mb-8">
+            Enter your credentials to access your account
+          </p>
+
+          {/* Verified message */}
+          
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
             }}
-            className="space-y-6"
+            className="space-y-5"
           >
             <form.Field name="email">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
+                <div className="space-y-1.5">
+                  <label className="text-xs text-[#94a3b8] uppercase tracking-widest">
+                    Email
+                  </label>
+                  <input
                     type="email"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                     placeholder="you@example.com"
                     disabled={isLoading}
+                    className="w-full bg-[#0f1117] border border-[#2a2d3e] text-white px-4 py-3 text-sm placeholder-[#4a5568] focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
                   />
-                  {field.state.meta.errors && (
-                    <p className="text-xs text-destructive">{field.state.meta.errors.join(", ")}</p>
+                  {field.state.meta.errors?.length > 0 && (
+                    <p className="text-xs text-red-400">
+                      {field.state.meta.errors.join(", ")}
+                    </p>
                   )}
                 </div>
               )}
@@ -72,43 +83,51 @@ function LoginPage() {
 
             <form.Field name="password">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
+                <div className="space-y-1.5">
+                  <label className="text-xs text-[#94a3b8] uppercase tracking-widest">
+                    Password
+                  </label>
+                  <input
                     type="password"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
                     placeholder="••••••••"
                     disabled={isLoading}
+                    className="w-full bg-[#0f1117] border border-[#2a2d3e] text-white px-4 py-3 text-sm placeholder-[#4a5568] focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
                   />
-                  {field.state.meta.errors && (
-                    <p className="text-xs text-destructive">{field.state.meta.errors.join(", ")}</p>
+                  {field.state.meta.errors?.length > 0 && (
+                    <p className="text-xs text-red-400">
+                      {field.state.meta.errors.join(", ")}
+                    </p>
                   )}
                 </div>
               )}
             </form.Field>
 
             {error && (
-              <div className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+              <div className="border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
                 {error}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {isLoading ? "Logging in..." : "Login"}
-            </Button>
+            </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <a href="/auth/register" className="font-medium text-primary hover:underline">
-              Sign up
-            </a>
+          <div style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.875rem", color: "#94a3b8" }}>
+            <a href="/auth/forgot-password" style={{ color: "#818cf8" }}>Forgot password?</a>
+            <span style={{ margin: "0 8px" }}>·</span>
+            No account yet?{" "}
+            <a href="/auth/register" style={{ color: "#818cf8" }}>Sign up</a>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

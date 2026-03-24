@@ -6,9 +6,16 @@ export interface Market {
   title: string;
   description?: string;
   status: "active" | "resolved";
-  creator?: string;
-  outcomes: MarketOutcome[];
+  creator: { username: string };
   totalMarketBets: number;
+  participants: number; // ← add this
+  createdAt?: string;
+  outcomes: {
+    id: number;
+    title: string;
+    odds: number;
+    totalBets: number;
+  }[];
 }
 
 export interface MarketOutcome {
@@ -103,35 +110,64 @@ class ApiClient {
       ...this.getAuthHeader(),
       ...options.headers,
     };
-
     const response = await fetch(url, {
       ...options,
       headers: headers as any,
     });
-
     const data = await response.json();
-
     if (!response.ok) {
-  
-      // If there are validation errors, throw them
       if (data.errors && Array.isArray(data.errors)) {
         const errorMessage = data.errors.map((e: any) => `${e.field}: ${e.message}`).join(", ");
         throw new Error(errorMessage);
       }
       throw new Error(data.error || `API Error: ${response.status}`);
     }
-
     return data ?? {};
   }
 
-  // Auth endpoints
-  async register(username: string, email: string, password: string): Promise<User> {
-    return this.request("/api/auth/register", {
+  async getSecurityQuestion(email: string): Promise<{ securityQuestion: string }> {
+    return this.request(`/api/auth/security-question/${email}`);
+  }
+
+  async resetPassword(
+    email: string,
+    securityAnswer: string,
+    newPassword: string
+  ): Promise<{ success: boolean }> {
+    return this.request("/api/auth/reset-password", {
       method: "POST",
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ email, securityAnswer, newPassword }),
     });
   }
 
+  async forgotPasswordEmail(email: string): Promise<{ message: string }> {
+    return this.request("/api/auth/forgot-password-email", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPasswordWithToken(token: string, newPassword: string): Promise<{ success: boolean }> {
+    return this.request("/api/auth/reset-password-token", {
+      method: "POST",
+      body: JSON.stringify({ token, newPassword }),
+    });
+  }
+
+
+  // Auth endpoints
+  async register(
+    username: string,
+    email: string,
+    password: string,
+    securityQuestion: string,
+    securityAnswer: string
+  ) {
+    return this.request("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ username, email, password, securityQuestion, securityAnswer }),
+    });
+  }
   async login(email: string, password: string): Promise<User> {
     return this.request("/api/auth/login", {
       method: "POST",
@@ -140,11 +176,19 @@ class ApiClient {
   }
 
   // Markets endpoints
-  async listMarkets(status: "active" | "resolved" = "active", page: number = 1, limit: number = 20): Promise<{ markets: Market[], hasMore: boolean }> {
-  const data = await this.request(`/api/markets?status=${status}&page=${page}&limit=${limit + 1}`);
+  async listMarkets(
+  status: string = "active",
+  page: number = 1,
+  limit: number = 20,
+  sortBy: string = "date",
+  sortOrder: string = "desc"
+) {
+  const data = await this.request(
+    `/api/markets?status=${status}&page=${page}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+  );
   return {
-    markets: data.slice(0, limit),
-    hasMore: data.length > limit
+    markets: data.data,
+    hasMore: data.hasMore,
   };
 }
 
@@ -183,10 +227,22 @@ async getLeaderboard(page: number = 1): Promise<LeaderboardResponse> {
   return this.request(`/api/leaderboard?page=${page}`);
 }
 
+async getApiKeyStatus(): Promise<{ hasApiKey: boolean }> {
+  return this.request("/api/users/api-key");
+}
+
+async generateApiKey(): Promise<{ apiKey: string }> {
+  return this.request("/api/users/api-key/generate", {
+    method: "POST",
+  });
+}
+
 }
 
 
 
 
 export const api = new ApiClient(API_BASE_URL);
+
+
 

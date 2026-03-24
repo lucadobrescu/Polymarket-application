@@ -23,7 +23,9 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 /**
  * Get user by ID
  */
-export async function getUserById(userId: number): Promise<typeof usersTable.$inferSelect | null> {
-  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
+export async function getUserById(userId: number): Promise<any> {
+  const user = await (db.query as any).usersTable.findFirst({ 
+    where: eq(usersTable.id, userId) 
+  });
   return user ?? null;
 }
