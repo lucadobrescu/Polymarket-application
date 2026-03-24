@@ -330,6 +330,7 @@ vertigo-internship-junior-developer-2026/
 ├── client/
 │   ├── src/
 │   │   ├── routes/
+│   │   │   ├── __root.tsx
 │   │   │   ├── index.tsx            # Dashboard
 │   │   │   ├── leaderboard.tsx      # Leaderboard
 │   │   │   ├── profile.tsx          # User profile
@@ -338,6 +339,7 @@ vertigo-internship-junior-developer-2026/
 │   │   │   │   └── new.tsx          # Create market
 │   │   │   └── auth/
 │   │   │       ├── login.tsx
+│   │   │       ├── logout.tsx
 │   │   │       ├── register.tsx
 │   │   │       ├── forgot-password.tsx
 │   │   │       ├── reset-password.tsx
