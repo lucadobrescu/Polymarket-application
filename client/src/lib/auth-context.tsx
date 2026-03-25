@@ -48,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }),
         );
       } catch {
-        // silently fail
       }
     };
 
@@ -128,7 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
     }
   } catch {
-    // silently fail
   }
 };
 

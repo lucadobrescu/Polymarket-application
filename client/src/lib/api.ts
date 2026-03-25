@@ -1,6 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4001";
 
-// Types
 export interface Market {
   id: number;
   title: string;
@@ -8,7 +7,7 @@ export interface Market {
   status: "active" | "resolved";
   creator: { username: string };
   totalMarketBets: number;
-  participants: number; // ← add this
+  participants: number;
   createdAt?: string;
   outcomes: {
     id: number;
@@ -82,7 +81,7 @@ export interface LeaderboardEntry {
   rank: number;
   username: string;
   balance: number;
-  earnings: number; // balance - 1000
+  earnings: number;
 }
 
 export interface LeaderboardResponse {
@@ -90,7 +89,6 @@ export interface LeaderboardResponse {
   hasMore: boolean;
 }
 
-// API Client
 class ApiClient {
   private baseUrl: string;
 
@@ -155,8 +153,6 @@ class ApiClient {
     });
   }
 
-
-  // Auth endpoints
   async register(
     username: string,
     email: string,
@@ -176,7 +172,6 @@ class ApiClient {
     });
   }
 
-  // Markets endpoints
   async listMarkets(
   status: string = "active",
   page: number = 1,
@@ -204,7 +199,6 @@ class ApiClient {
     });
   }
 
-  // Bets endpoints
   async placeBet(marketId: number, outcomeId: number, amount: number): Promise<Bet> {
     return this.request(`/api/markets/${marketId}/bets`, {
       method: "POST",

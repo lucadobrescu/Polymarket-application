@@ -2,12 +2,9 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { api, Market } from "@/lib/api";
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type SortBy = "date" | "totalBets" | "participants";
 type SortOrder = "asc" | "desc";
-
-// ─── Market Card ──────────────────────────────────────────────────────────────
 
 function MarketCard({ market, onClick }: { market: Market; onClick: () => void }) {
   return (
@@ -15,7 +12,6 @@ function MarketCard({ market, onClick }: { market: Market; onClick: () => void }
       onClick={onClick}
       className="bg-[#1a1d2e] border border-[#2a2d3e] p-5 cursor-pointer hover:border-indigo-500 hover:bg-[#1e2138] transition-all duration-150 h-full flex flex-col"
     >
-      {/* Status + Pool */}
       <div className="flex items-center justify-between mb-3">
         <span className={`text-xs font-bold uppercase tracking-widest px-2 py-1 ${
           market.status === "active"
@@ -29,12 +25,10 @@ function MarketCard({ market, onClick }: { market: Market; onClick: () => void }
         </span>
       </div>
 
-      {/* Title */}
       <h3 className="text-white font-semibold text-base leading-snug mb-4 line-clamp-2">
         {market.title}
       </h3>
 
-      {/* Outcomes */}
       <div className="space-y-2 flex-1">
         {market.outcomes.map((outcome) => (
           <div key={outcome.id} className="flex items-center justify-between">
@@ -56,7 +50,6 @@ function MarketCard({ market, onClick }: { market: Market; onClick: () => void }
         ))}
       </div>
 
-      {/* Footer */}
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#2a2d3e]">
         <span className="text-xs text-[#94a3b8]">
           {market.participants} participant{market.participants !== 1 ? "s" : ""}
@@ -67,13 +60,9 @@ function MarketCard({ market, onClick }: { market: Market; onClick: () => void }
   );
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 function DashboardPage() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-
-  // ─── State ──────────────────────────────────────────────────────────────────
 
   const [markets, setMarkets] = useState<Market[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,8 +74,6 @@ function DashboardPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
   const limit = 20;
-
-  // ─── Data Fetching ──────────────────────────────────────────────────────────
 
   const loadMarkets = async () => {
     try {
@@ -108,8 +95,6 @@ function DashboardPage() {
     return () => clearInterval(interval);
   }, [status, page, sortBy, sortOrder]);
 
-  // ─── Handlers ───────────────────────────────────────────────────────────────
-
   const handleStatusChange = (newStatus: "active" | "resolved") => {
     setStatus(newStatus);
     setPage(1);
@@ -124,8 +109,6 @@ function DashboardPage() {
     }
     setPage(1);
   };
-
-  // ─── Unauthenticated View ───────────────────────────────────────────────────
 
   if (!isAuthenticated) {
     return (
@@ -157,12 +140,8 @@ function DashboardPage() {
     );
   }
 
-  // ─── Authenticated View ─────────────────────────────────────────────────────
-
   return (
     <div className="min-h-screen bg-[#0f1117] text-white">
-
-      {/* Top Navigation Bar */}
       <div className="border-b border-[#2a2d3e] bg-[#0f1117] sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-8">
@@ -213,10 +192,7 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-
-        {/* Page Title + Stats */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Markets</h1>
@@ -233,9 +209,7 @@ function DashboardPage() {
           </button>
         </div>
 
-        {/* Filters + Sorting Bar */}
         <div className="flex items-center justify-between mb-6 border-b border-[#2a2d3e] pb-4">
-          {/* Status Filter */}
           <div className="flex items-center gap-1">
             {(["active", "resolved"] as const).map((s) => (
               <button
@@ -252,7 +226,6 @@ function DashboardPage() {
             ))}
           </div>
 
-          {/* Sort Controls */}
           <div className="flex items-center gap-2">
             <span className="text-xs text-[#94a3b8] mr-1">Sort:</span>
             {([
@@ -275,14 +248,12 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Error State */}
         {error && (
           <div className="border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 mb-6">
             {error}
           </div>
         )}
 
-        {/* Markets Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
@@ -321,7 +292,6 @@ function DashboardPage() {
               ))}
             </div>
 
-            {/* Pagination */}
             <div className="flex items-center justify-between mt-8 border-t border-[#2a2d3e] pt-6">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -347,8 +317,6 @@ function DashboardPage() {
     </div>
   );
 }
-
-// ─── Route ────────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute("/")({
   component: DashboardPage,

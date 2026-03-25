@@ -4,18 +4,39 @@ const resendApiKey = process.env.RESEND_API_KEY;
 const emailFrom = process.env.EMAIL_AUTH_FROM || "onboarding@resend.dev";
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-// ─── Verification Email ───────────────────────────────────────────────────────
+async function sendEmail(payload: {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY missing, skipping email send");
+    return;
+  }
+
+  const result = await resend.emails.send(payload);
+  if (result.error) {
+    const errorMessage =
+      typeof result.error === "object" && result.error !== null && "message" in result.error
+        ? String((result.error as { message?: unknown }).message ?? "Unknown Resend error")
+        : "Unknown Resend error";
+    throw new Error(`Failed to send email: ${errorMessage}`);
+  }
+
+  if (result.data?.id) {
+    console.info(`[email] sent ${result.data.id} to ${payload.to}`);
+  }
+}
 
 export async function sendVerificationEmail(
   email: string,
   username: string,
   token: string
 ) {
-  if (!resend) return;
-
   const verificationUrl = `http://localhost:3000/auth/verify-email?token=${token}`;
 
-  await resend.emails.send({
+  await sendEmail({
     from: emailFrom,
     to: email,
     subject: "Verify your PredictMarket account",
@@ -34,18 +55,14 @@ export async function sendVerificationEmail(
   });
 }
 
-// ─── Password Reset Email ─────────────────────────────────────────────────────
-
 export async function sendPasswordResetEmail(
   email: string,
   username: string,
   token: string
 ) {
-  if (!resend) return;
-
   const resetUrl = `http://localhost:3000/auth/reset-password?token=${token}`;
 
-  await resend.emails.send({
+  await sendEmail({
     from: emailFrom,
     to: email,
     subject: "Reset your PredictMarket password",
