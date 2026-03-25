@@ -1,4 +1,38 @@
 # Submission
+## Robert-Review Fixes
+
+After receiving feedback from the Vertigo review team, the following improvements were made on the `robert-review-fixes` branch.
+
+### Role freshness after authentication
+The profile API response now includes the user's current role so the client syncs live permissions and balance from the server on every refresh. Role changes no longer require waiting for the JWT to expire. Previously the UI relied solely on the JWT payload for role information — now it pulls from the server on every auth hydration and refresh cycle.
+Files changed: `handlers.ts`, `auth-context.tsx`, `api.ts`
+
+### Admin betting restriction
+Admins are now blocked from placing bets server-side with a 403 response. The frontend hides the betting form entirely for admin accounts and shows only the market resolve controls. An admin who can both bet on an outcome and later resolve the market in their favour is a conflict of interest and should never have been permitted.
+Files changed: `handlers.ts`, `$id.tsx`
+
+### Stronger token generation
+Switched from `crypto.randomUUID()` to cryptographically secure `randomBytes(64)` for verification tokens, password reset tokens, and API key generation. This provides significantly more entropy than UUID and is the correct approach for security-sensitive values.
+Files changed: `auth.ts`, `handlers.ts`
+
+### Email configuration and robustness
+The sender address is now read from the `EMAIL_AUTH_FROM` environment variable rather than being hardcoded. Both `RESEND_API_KEY` and `EMAIL_AUTH_FROM` are documented in `.env.example` so the configuration requirements are immediately clear to anyone setting up the project. Registration now fails safely if the verification email fails to send, preventing unusable unverified accounts from being silently created.
+Files changed: `email.ts`, `handlers.ts`, `.env.example`
+
+### Card alignment
+Market cards now use a consistent full-height flex layout so the action row always sits at the bottom regardless of content length. This keeps the dashboard visually uniform across all cards.
+Files changed: `index.tsx`, `market-card.tsx`
+
+### Test coverage
+Backend tests expanded to cover auth flows, email verification, forgot and reset password, API key endpoints, admin betting restrictions, and market resolution with payout distribution. Frontend tests added for API client behavior and market card rendering. The test environment is configured to avoid hitting the live email provider during test runs.
+Files changed: `api.test.ts`, `setup.ts`, `market-card.test.tsx`
+![Backend tests passing](screenshot-tests-backend.png.png) 
+![Frontend tests passing](screenshot-tests-frontend.png.png)
+### Code cleanup
+Removed excessive decorative comments throughout the codebase and kept only short meaningful ones. Fixed client test runtime compatibility for localStorage in API tests.
+
+All backend tests pass with `bun test` in the server directory.
+All frontend tests pass with `bun run test` in the client directory.
 
 # Short description:
 
