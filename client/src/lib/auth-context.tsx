@@ -17,7 +17,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Refresh role/balance from server so role changes apply without re-login.
     const syncUserFromServer = async (token: string, parsedUser: User) => {
       try {
         const response = await fetch("http://localhost:4001/api/users/profile?activePage=1&resolvedPage=1", {
@@ -49,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }),
         );
       } catch {
-        // Keep existing session state if profile refresh fails.
       }
     };
 
@@ -129,7 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
     }
   } catch {
-    // Keep existing session state if profile refresh fails.
   }
 };
 

@@ -50,7 +50,6 @@ function MarketCard({ market, onClick }: { market: Market; onClick: () => void }
         ))}
       </div>
 
-      {/* Keep footer pinned for equal card height alignment. */}
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#2a2d3e]">
         <span className="text-xs text-[#94a3b8]">
           {market.participants} participant{market.participants !== 1 ? "s" : ""}

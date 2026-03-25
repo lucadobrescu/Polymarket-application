@@ -198,6 +198,7 @@ class ApiClient {
       body: JSON.stringify({ title, description, outcomes }),
     });
   }
+
   async placeBet(marketId: number, outcomeId: number, amount: number): Promise<Bet> {
     return this.request(`/api/markets/${marketId}/bets`, {
       method: "POST",

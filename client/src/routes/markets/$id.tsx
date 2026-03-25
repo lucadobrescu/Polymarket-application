@@ -80,7 +80,6 @@ function ResolveMarketPanel({
   );
 }
 
-
 function MarketDetailPage() {
   const { id } = useParams({ from: "/markets/$id" });
   const navigate = useNavigate();
@@ -194,7 +193,6 @@ function MarketDetailPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-
         <div className="border border-[#2a2d3e] bg-[#1a1d2e] p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
@@ -375,6 +373,7 @@ function MarketDetailPage() {
           </div>
         )}
 
+        {/* Admins can resolve markets, but betting is disabled for them. */}
         {market.status === "active" && user?.role === "admin" && (
           <div className="border border-[#2a2d3e] bg-[#1a1d2e] px-6 py-4">
             <div className="text-[#94a3b8] text-sm">
@@ -391,7 +390,6 @@ function MarketDetailPage() {
           </div>
         )}
 
-        {/* Admins can resolve markets but cannot place bets. */}
         {market.status === "active" && user?.role === "admin" && (
           <ResolveMarketPanel
             market={market}

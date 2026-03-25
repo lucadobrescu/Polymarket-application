@@ -66,7 +66,13 @@ export async function handleRegister({
     emailVerified: false,
   });
 
-  await sendVerificationEmail(email, username, verificationToken);
+  try {
+    await sendVerificationEmail(email, username, verificationToken);
+  } catch (error: any) {
+    await db.delete(usersTable).where(eq(usersTable.email, email));
+    set.status = 502;
+    return { error: error?.message || "Failed to send verification email" };
+  }
 
   set.status = 201;
   return {
@@ -116,6 +122,7 @@ export async function handleLogin({
     token,
   };
 }
+
 export async function handleCreateMarket({
   body,
   set,
@@ -724,7 +731,7 @@ export async function handleForgotPassword({
     where: eq(usersTable.email, email),
   });
 
-  // Avoid account enumeration by returning the same response for unknown emails.
+  // Always return success to avoid revealing whether the email exists.
   if (!user) {
     return { message: "If this email exists you will receive a reset link shortly." };
   }
@@ -737,7 +744,11 @@ export async function handleForgotPassword({
     .set({ resetToken, resetTokenExpiry })
     .where(eq(usersTable.id, user.id));
 
-  await sendPasswordResetEmail(email, user.username, resetToken);
+  try {
+    await sendPasswordResetEmail(email, user.username, resetToken);
+  } catch (error) {
+    console.error("[email] forgot-password send failed", error);
+  }
 
   return { message: "If this email exists you will receive a reset link shortly." };
 }
