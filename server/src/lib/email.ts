@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+const emailFrom = process.env.EMAIL_AUTH_FROM || "onboarding@resend.dev";
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // ─── Verification Email ───────────────────────────────────────────────────────
 
@@ -9,10 +11,12 @@ export async function sendVerificationEmail(
   username: string,
   token: string
 ) {
+  if (!resend) return;
+
   const verificationUrl = `http://localhost:3000/auth/verify-email?token=${token}`;
 
   await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: emailFrom,
     to: email,
     subject: "Verify your PredictMarket account",
     html: `
@@ -37,10 +41,12 @@ export async function sendPasswordResetEmail(
   username: string,
   token: string
 ) {
+  if (!resend) return;
+
   const resetUrl = `http://localhost:3000/auth/reset-password?token=${token}`;
 
   await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: emailFrom,
     to: email,
     subject: "Reset your PredictMarket password",
     html: `
