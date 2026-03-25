@@ -67,6 +67,7 @@ export interface ResolvedBet {
 
 export interface UserProfile {
   balance: number;
+  role: "user" | "admin";
   activeBets: {
     data: ActiveBet[];
     hasMore: boolean;

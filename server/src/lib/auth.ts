@@ -1,6 +1,7 @@
 import { usersTable } from "../db/schema";
 import db from "../db";
 import { eq } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
 
 export interface AuthTokenPayload {
   userId: number;
@@ -28,4 +29,11 @@ export async function getUserById(userId: number): Promise<any> {
     where: eq(usersTable.id, userId) 
   });
   return user ?? null;
+}
+
+/**
+ * Generate cryptographically strong random tokens for security workflows.
+ */
+export function generateSecureToken(bytes: number = 32): string {
+  return randomBytes(bytes).toString("hex");
 }

@@ -348,7 +348,7 @@ function MarketDetailPage() {
         )}
 
         {/* Place Bet */}
-        {market.status === "active" && (
+        {market.status === "active" && user?.role !== "admin" && (
           <div className="border border-[#2a2d3e] bg-[#1a1d2e]">
             <div className="px-6 py-4 border-b border-[#2a2d3e]">
               <div className="text-xs text-[#94a3b8] uppercase tracking-widest">
@@ -386,6 +386,14 @@ function MarketDetailPage() {
               >
                 {isBetting ? "Placing bet..." : "Place Bet"}
               </button>
+            </div>
+          </div>
+        )}
+
+        {market.status === "active" && user?.role === "admin" && (
+          <div className="border border-[#2a2d3e] bg-[#1a1d2e] px-6 py-4">
+            <div className="text-[#94a3b8] text-sm">
+              Admin accounts can resolve markets but cannot place bets.
             </div>
           </div>
         )}

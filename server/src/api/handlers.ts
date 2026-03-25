@@ -2,7 +2,12 @@ import { sendPasswordResetEmail, sendVerificationEmail } from "../lib/email";
 import { eq, and, sql, asc, desc } from "drizzle-orm";
 import db from "../db";
 import { usersTable, marketsTable, marketOutcomesTable, betsTable, apiKeysTable } from "../db/schema";
-import { hashPassword, verifyPassword, type AuthTokenPayload } from "../lib/auth";
+import {
+  hashPassword,
+  verifyPassword,
+  generateSecureToken,
+  type AuthTokenPayload,
+} from "../lib/auth";
 import {
   validateRegistration,
   validateLogin,
@@ -51,7 +56,7 @@ export async function handleRegister({
 
   const passwordHash = await hashPassword(password);
   const securityAnswerHash = await hashPassword(securityAnswer.toLowerCase().trim());
-  const verificationToken = crypto.randomUUID();
+  const verificationToken = generateSecureToken(32);
 
   await db
   .insert(usersTable)
@@ -323,6 +328,12 @@ export async function handlePlaceBet({
   const marketId = params.id;
   const { outcomeId, amount } = body;
   const betAmount = Number(amount);
+
+  if (user.role === "admin") {
+    set.status = 403;
+    return { error: "Admins cannot place bets" };
+  }
+
   const errors = validateBet(betAmount);
   if (errors.length > 0) {
     set.status = 400;
@@ -558,6 +569,7 @@ export async function handleGetProfile({
   );
   return {
     balance: user.balance,
+    role: user.role,
     activeBets: {
       data: activeBetsWithOdds,
       hasMore: paginatedActive.length > limit,
@@ -591,7 +603,7 @@ export async function handleGenerateApiKey({
     set.status = 401;
     return { error: "Unauthorized" };
   }
-  const rawKey = `sk_${crypto.randomUUID().replace(/-/g, "")}`;
+  const rawKey = `sk_${generateSecureToken(32)}`;
   const encoder = new TextEncoder();
   const data = encoder.encode(rawKey);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -740,7 +752,7 @@ export async function handleForgotPassword({
     return { message: "If this email exists you will receive a reset link shortly." };
   }
 
-  const resetToken = crypto.randomUUID();
+  const resetToken = generateSecureToken(32);
   const resetTokenExpiry = Date.now() + 60 * 60 * 1000; // 1 hour from now
 
   await db

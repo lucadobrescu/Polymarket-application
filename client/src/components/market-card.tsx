@@ -12,7 +12,7 @@ export function MarketCard({ market }: MarketCardProps) {
   const navigate = useNavigate();
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -24,9 +24,9 @@ export function MarketCard({ market }: MarketCardProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex flex-col flex-1">
         {/* Outcomes */}
-        <div className="space-y-2">
+        <div className="space-y-2 flex-1">
           {market.outcomes.map((outcome) => (
             <div
               key={outcome.id}

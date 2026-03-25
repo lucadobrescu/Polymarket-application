@@ -13,7 +13,7 @@ function MarketCard({ market, onClick }: { market: Market; onClick: () => void }
   return (
     <div
       onClick={onClick}
-      className="bg-[#1a1d2e] border border-[#2a2d3e] p-5 cursor-pointer hover:border-indigo-500 hover:bg-[#1e2138] transition-all duration-150"
+      className="bg-[#1a1d2e] border border-[#2a2d3e] p-5 cursor-pointer hover:border-indigo-500 hover:bg-[#1e2138] transition-all duration-150 h-full flex flex-col"
     >
       {/* Status + Pool */}
       <div className="flex items-center justify-between mb-3">
@@ -35,7 +35,7 @@ function MarketCard({ market, onClick }: { market: Market; onClick: () => void }
       </h3>
 
       {/* Outcomes */}
-      <div className="space-y-2">
+      <div className="space-y-2 flex-1">
         {market.outcomes.map((outcome) => (
           <div key={outcome.id} className="flex items-center justify-between">
             <span className="text-[#94a3b8] text-sm truncate flex-1 mr-2">

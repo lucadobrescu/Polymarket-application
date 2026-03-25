@@ -17,17 +17,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const syncUserFromServer = async (token: string, parsedUser: User) => {
+      try {
+        const response = await fetch("http://localhost:4001/api/users/profile?activePage=1&resolvedPage=1", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const updatedUser: User = {
+          ...parsedUser,
+          token,
+          balance: data.balance ?? parsedUser.balance ?? 0,
+          role: data.role ?? parsedUser.role ?? "user",
+        };
+
+        setUser(updatedUser);
+        localStorage.setItem(
+          "auth_user",
+          JSON.stringify({
+            id: updatedUser.id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            balance: updatedUser.balance,
+            role: updatedUser.role,
+          }),
+        );
+      } catch {
+        // silently fail
+      }
+    };
+
     const token = localStorage.getItem("auth_token");
     const userData = localStorage.getItem("auth_user");
     if (token && userData) {
       try {
         const parsedUser = JSON.parse(userData);
-        setUser({
+        const hydratedUser: User = {
           ...parsedUser,
           token,
           balance: parsedUser.balance ?? 0,
           role: parsedUser.role ?? "user",
-        });
+        };
+
+        setUser(hydratedUser);
+        void syncUserFromServer(token, hydratedUser);
       } catch {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("auth_user");
@@ -71,8 +109,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const data = await response.json();
 
-    if (data.balance !== undefined) {
-      const updatedUser = { ...user, balance: data.balance };
+    if (data.balance !== undefined || data.role !== undefined) {
+      const updatedUser = {
+        ...user,
+        balance: data.balance ?? user.balance,
+        role: data.role ?? user.role,
+      };
       setUser(updatedUser);
       localStorage.setItem(
         "auth_user",
