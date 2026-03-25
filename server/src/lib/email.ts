@@ -2,9 +2,8 @@ import { Resend } from "resend";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const emailFrom = process.env.EMAIL_AUTH_FROM || "onboarding@resend.dev";
+// Email delivery is optional in local/test environments without RESEND_API_KEY.
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
-
-// ─── Verification Email ───────────────────────────────────────────────────────
 
 export async function sendVerificationEmail(
   email: string,
@@ -34,7 +33,6 @@ export async function sendVerificationEmail(
   });
 }
 
-// ─── Password Reset Email ─────────────────────────────────────────────────────
 
 export async function sendPasswordResetEmail(
   email: string,

@@ -15,13 +15,9 @@ import {
   validateBet,
 } from "../lib/validation";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type JwtSigner = {
   sign: (payload: AuthTokenPayload) => Promise<string>;
 };
-
-// ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export async function handleRegister({
   body,
@@ -120,8 +116,6 @@ export async function handleLogin({
     token,
   };
 }
-// ─── Markets ──────────────────────────────────────────────────────────────────
-
 export async function handleCreateMarket({
   body,
   set,
@@ -312,8 +306,6 @@ export async function handleGetMarket({
   };
 }
 
-// ─── Bets ─────────────────────────────────────────────────────────────────────
-
 export async function handlePlaceBet({
   params,
   body,
@@ -389,8 +381,6 @@ export async function handlePlaceBet({
     return { error: error.message || "Failed to place bet" };
   }
 }
-
-// ─── Market Resolution ────────────────────────────────────────────────────────
 
 export async function handleResolveMarket({
   params,
@@ -474,8 +464,6 @@ export async function handleResolveMarket({
   }
 }
 
-// ─── Leaderboard ──────────────────────────────────────────────────────────────
-
 export async function handleGetLeaderboard({
   query,
 }: {
@@ -502,8 +490,6 @@ export async function handleGetLeaderboard({
     hasMore,
   };
 }
-
-// ─── Profile ──────────────────────────────────────────────────────────────────
 
 export async function handleGetProfile({
   user,
@@ -590,8 +576,6 @@ export async function handleGetProfile({
   };
 }
 
-// ─── API Keys ─────────────────────────────────────────────────────────────────
-
 export async function handleGenerateApiKey({
   user,
   set,
@@ -635,8 +619,6 @@ export async function handleGetApiKey({
   });
   return { hasApiKey: !!existing };
 }
-
-// ─── Forgot Password ──────────────────────────────────────────────────────────
 
 export async function handleGetSecurityQuestion({
   params,
@@ -698,9 +680,6 @@ export async function handleResetPassword({
   return { success: true, message: "Password updated successfully" };
 }
 
-
-// ─── Verify Email ─────────────────────────────────────────────────────────────
-
 export async function handleVerifyEmail({
   query,
   set,
@@ -732,8 +711,6 @@ export async function handleVerifyEmail({
   return { success: true, message: "Email verified successfully" };
 }
 
-// ─── Forgot Password (Email) ──────────────────────────────────────────────────
-
 export async function handleForgotPassword({
   body,
   set,
@@ -747,13 +724,13 @@ export async function handleForgotPassword({
     where: eq(usersTable.email, email),
   });
 
-  // Always return success — don't reveal if email exists
+  // Avoid account enumeration by returning the same response for unknown emails.
   if (!user) {
     return { message: "If this email exists you will receive a reset link shortly." };
   }
 
   const resetToken = generateSecureToken(32);
-  const resetTokenExpiry = Date.now() + 60 * 60 * 1000; // 1 hour from now
+  const resetTokenExpiry = Date.now() + 60 * 60 * 1000;
 
   await db
     .update(usersTable)
@@ -764,8 +741,6 @@ export async function handleForgotPassword({
 
   return { message: "If this email exists you will receive a reset link shortly." };
 }
-
-// ─── Reset Password With Token ────────────────────────────────────────────────
 
 export async function handleResetPasswordWithToken({
   body,

@@ -4,8 +4,6 @@ import { useAuth } from "@/lib/auth-context";
 import { api, Market } from "@/lib/api";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-// ─── Resolve Panel (Admin Only) ───────────────────────────────────────────────
-
 function ResolveMarketPanel({
   market,
   onResolved,
@@ -82,7 +80,6 @@ function ResolveMarketPanel({
   );
 }
 
-// ─── Market Detail Page ───────────────────────────────────────────────────────
 
 function MarketDetailPage() {
   const { id } = useParams({ from: "/markets/$id" });
@@ -140,8 +137,6 @@ function MarketDetailPage() {
     }
   };
 
-  // ─── States ────────────────────────────────────────────────────────────────
-
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
@@ -182,12 +177,8 @@ function MarketDetailPage() {
     );
   }
 
-  // ─── Main View ─────────────────────────────────────────────────────────────
-
   return (
     <div className="min-h-screen bg-[#0f1117] text-white">
-
-      {/* Navbar */}
       <div className="border-b border-[#2a2d3e] sticky top-0 z-10 bg-[#0f1117]">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <button
@@ -204,7 +195,6 @@ function MarketDetailPage() {
 
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
 
-        {/* Market Header */}
         <div className="border border-[#2a2d3e] bg-[#1a1d2e] p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
@@ -226,7 +216,6 @@ function MarketDetailPage() {
             </span>
           </div>
 
-          {/* Volume */}
           <div className="mt-4 pt-4 border-t border-[#2a2d3e] flex items-center gap-6">
             <div>
               <div className="text-xs text-[#94a3b8] uppercase tracking-widest">
@@ -250,14 +239,12 @@ function MarketDetailPage() {
           </div>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
         )}
 
-        {/* Outcomes */}
         <div className="border border-[#2a2d3e] bg-[#1a1d2e]">
           <div className="px-6 py-4 border-b border-[#2a2d3e]">
             <div className="text-xs text-[#94a3b8] uppercase tracking-widest">
@@ -297,7 +284,6 @@ function MarketDetailPage() {
           </div>
         </div>
 
-        {/* Pie Chart */}
         {market.totalMarketBets > 0 && (
           <div className="border border-[#2a2d3e] bg-[#1a1d2e]">
             <div className="px-6 py-4 border-b border-[#2a2d3e]">
@@ -347,7 +333,6 @@ function MarketDetailPage() {
           </div>
         )}
 
-        {/* Place Bet */}
         {market.status === "active" && user?.role !== "admin" && (
           <div className="border border-[#2a2d3e] bg-[#1a1d2e]">
             <div className="px-6 py-4 border-b border-[#2a2d3e]">
@@ -398,7 +383,6 @@ function MarketDetailPage() {
           </div>
         )}
 
-        {/* Resolved State */}
         {market.status === "resolved" && (
           <div className="border border-[#2a2d3e] bg-[#1a1d2e] px-6 py-4">
             <div className="text-[#94a3b8] text-sm">
@@ -407,7 +391,7 @@ function MarketDetailPage() {
           </div>
         )}
 
-        {/* Admin Panel */}
+        {/* Admins can resolve markets but cannot place bets. */}
         {market.status === "active" && user?.role === "admin" && (
           <ResolveMarketPanel
             market={market}
@@ -422,8 +406,6 @@ function MarketDetailPage() {
     </div>
   );
 }
-
-// ─── Route ────────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute("/markets/$id")({
   component: MarketDetailPage,
